@@ -1,0 +1,4 @@
+en:
+  site_settings:
+    solr_indexing_enabled: "Send posts to a Solr server for indexing?"
+    solr_indexing_server: "The Solr server address"

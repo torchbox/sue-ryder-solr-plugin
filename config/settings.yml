@@ -1,0 +1,5 @@
+plugins:
+  solr_indexing_enabled:
+    default: false
+  solr_indexing_server:
+    default: 'http://localhost:8983/solr/CORE_NAME'
