@@ -61,6 +61,7 @@ after_initialize do
         payload["ss_search_api_language"] = "und"
         payload["tm_title"] = topic.title
         payload["ss_main_type"] = "Online Community Post"
+        payload["bs_main_status"] = "true"
         payload["dm_posts$created"] = []
         payload["tm_rendered_item"] = []
 
