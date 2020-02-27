@@ -126,12 +126,16 @@ after_initialize do
   end
 
   def post_created(post, opts, user)
-    return if !SiteSetting.solr_indexing_enabled
-    # Don't index private forum topics, or when they have not category
-    return if !post.topic.category
-    return if post.topic.category.read_restricted
-    return if post.topic.archetype = 'private_message'
-    Jobs.enqueue(:solr_index_post, { post_id: post.id })
+    begin
+      return if !SiteSetting.solr_indexing_enabled
+      # Don't index private forum topics, or when they have not category
+      return if !post.topic.category
+      return if post.topic.category.read_restricted
+      return if post.topic.archetype = 'private_message'
+      Jobs.enqueue(:solr_index_post, { post_id: post.id })
+    rescue
+      puts "Fatal error in SOLR post_created"
+    end
  	end
   listen_for :post_created
 
