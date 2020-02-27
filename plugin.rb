@@ -132,9 +132,11 @@ after_initialize do
       return if !post.topic.category
       return if post.topic.category.read_restricted
       return if post.topic.archetype = 'private_message'
-      Jobs.enqueue(:solr_index_post, { post_id: post.id })
     rescue
       puts "Fatal error in SOLR post_created"
+    else
+      # No exceptions, let's enqueue this
+      Jobs.enqueue(:solr_index_post, { post_id: post.id })
     end
  	end
   listen_for :post_created
