@@ -127,8 +127,10 @@ after_initialize do
 
   def post_created(post, opts, user)
     return if !SiteSetting.solr_indexing_enabled
-    # Don't index private forum topics
-    return if !post.topic.category or (post.topic.category and post.topic.category.read_restricted) or post.topic.archetype = 'private_message'
+    # Don't index private forum topics, or when they have not category
+    return if !post.topic.category
+    return if post.topic.category.read_restricted
+    return if post.topic.archetype = 'private_message'
     Jobs.enqueue(:solr_index_post, { post_id: post.id })
  	end
   listen_for :post_created
