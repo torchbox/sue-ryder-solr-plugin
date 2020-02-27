@@ -1,6 +1,6 @@
 # name: SOLR Indexing
 # about: Index forum topics in Solr
-# version: 0.2.0
+# version: 0.3.0
 # original author: Nate Flood for ECHO Inc
 # original url: https://github.com/ECHOInternational/discourse-solr-indexing
 # version authors: Rich Brennan & Alex Bridge for Torchbox
