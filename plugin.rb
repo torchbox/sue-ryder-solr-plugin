@@ -1,9 +1,9 @@
 # name: SOLR Indexing
 # about: Index forum topics in Solr
-# version: 0.3.0
+# version: 0.4.0
 # original author: Nate Flood for ECHO Inc
 # original url: https://github.com/ECHOInternational/discourse-solr-indexing
-# version authors: Rich Brennan & Alex Bridge for Torchbox
+# version authors: Rich Brennan, Alex Bridge & Dan Braghis for Torchbox
 # version url: https://git.torchbox.com/sue-ryder/online-community/solr-plugin/
 
 gem "rsolr", "2.2.1"
@@ -13,10 +13,11 @@ enabled_site_setting :solr_indexing_enabled
 after_initialize do
 	module ::SolrIndexing
     PLUGIN_NAME = "solr_indexing".freeze
-    SOLR = RSolr.connect url: SiteSetting.solr_indexing_server
-
     solr_indexing_server = SiteSetting.solr_indexing_server
-    puts "SOLR Indexing server #{solr_indexing_server}"
+
+    SOLR = RSolr.connect :url => solr_indexing_server, :update_path => SiteSetting.solr_indexing_update_path
+
+    Rails.logger.info "SOLR Indexing server #{solr_indexing_server}"
 
     class Serializer
       def self.serialize_topic(topic)
@@ -96,31 +97,31 @@ after_initialize do
       def execute(args)
         return if !SiteSetting.solr_indexing_enabled
 
-        puts "[SOLR REINDEX STARTED]"
+        Rails.logger.info "[SOLR REINDEX STARTED]"
         begin
-          puts "SOLR Removing Records Started"
+          Rails.logger.info "SOLR: Removing Records Started"
           # Deleting by ss_main_type because deleting by type doesn't work
           SolrIndexing::SOLR.delete_by_query 'ss_main_type:"Online Community Post"'
-          puts "SOLR Removing Records Completed"
+          Rails.logger.info "SOLR: Removing Records Completed"
         rescue
-          puts "SOLR Removing Records Failed"
+          Rails.logger.error "SOLR: Removing Records Failed"
         end
         count = 0
         Category.where(read_restricted: false).each do | category |
-          puts "SOLR Indexing #{category.name}"
+          Rails.logger.info "SOLR: Indexing #{category.name}"
           # Index only unhidden topics; the above query already excludes deleted ones
           category.topics.where(visible: true).each do |topic|
             serialized = SolrIndexing::Serializer.serialize_topic(topic)
-            puts serialized
+            Rails.logger.debug serialized
             SolrIndexing::SOLR.add serialized
             count = count+1
           end
         end
-        puts "#{count} TOPICS INDEXED"
-        puts "Solr Commit (soft)"
+        Rails.logger.info "SOLR: #{count} TOPICS INDEXED"
+        Rails.logger.info "[SOLR Commit (soft)]"
         # Use soft commit because Zoocha's config prevents hard commits
         SolrIndexing::SOLR.commit(params: { softCommit: true })
-        puts "[SOLR REINDEX COMPLETED]"
+        Rails.logger.info "[SOLR REINDEX COMPLETED]"
       end
     end
   end
@@ -133,7 +134,7 @@ after_initialize do
       return if post.topic.category.read_restricted
       return if post.topic.archetype = 'private_message'
     rescue
-      puts "Fatal error in SOLR post_created"
+      Rails.logger.error "Fatal error in SOLR post_created"
     else
       # No exceptions, let's enqueue this
       Jobs.enqueue(:solr_index_post, { post_id: post.id })
