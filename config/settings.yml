@@ -3,3 +3,5 @@ plugins:
     default: false
   solr_indexing_server:
     default: 'http://localhost:8983/solr/CORE_NAME'
+  solr_indexing_update_path:
+    default: 'update'
