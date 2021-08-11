@@ -84,9 +84,14 @@ after_initialize do
       sidekiq_options retry: 3
 
       def execute(args)
-        if post = Post.find_by(id: args[:post_id])
-          serialized = SolrIndexing::Serializer.serialize_topic(post.topic)
-          SolrIndexing::SOLR.add serialized, add_attributes: { commitWithin: 10000}
+        begin
+          if post = Post.find_by(id: args[:post_id])
+            serialized = SolrIndexing::Serializer.serialize_topic(post.topic)
+            SolrIndexing::SOLR.add serialized, add_attributes: { commitWithin: 10000}
+          end
+        rescue => e
+          Rails.logger.error "SOLR: Indexing Post Failed"
+          Rails.logger.error ([e.message]+e.backtrace).join($/)
         end
       end
     end
@@ -103,8 +108,9 @@ after_initialize do
           # Deleting by ss_main_type because deleting by type doesn't work
           SolrIndexing::SOLR.delete_by_query 'ss_main_type:"Online Community Post"'
           Rails.logger.info "SOLR: Removing Records Completed"
-        rescue
+        rescue => e
           Rails.logger.error "SOLR: Removing Records Failed"
+          Rails.logger.error ([e.message]+e.backtrace).join($/)
         end
         count = 0
         Category.where(read_restricted: false).each do | category |
