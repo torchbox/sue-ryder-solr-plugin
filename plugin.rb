@@ -1,12 +1,12 @@
 # name: SOLR Indexing
 # about: Index forum topics in Solr
-# version: 0.4.1
+# version: 0.4.2
 # original author: Nate Flood for ECHO Inc
 # original url: https://github.com/ECHOInternational/discourse-solr-indexing
 # version authors: Rich Brennan, Alex Bridge & Dan Braghis for Torchbox
 # version url: https://git.torchbox.com/sue-ryder/online-community/solr-plugin/
 
-gem "rsolr", "2.2.1"
+gem "rsolr", "2.3.0"
 
 enabled_site_setting :solr_indexing_enabled
 
